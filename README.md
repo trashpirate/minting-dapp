@@ -1,4 +1,4 @@
-# CROSSCHAIN MINTING DAPP
+# MINTING DAPP
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)
 ![Node](https://img.shields.io/badge/node-v12.22.9-blue.svg?style=for-the-badge)
@@ -39,7 +39,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository contains the code for a minting dApp for a cross-chain NFT collection (BNB -> Base) 
+This repository contains the code for a minting dApp for a NFT collection
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
@@ -51,11 +51,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/trashpirate/minting-dapp-crosschain.git
+   git clone https://github.com/trashpirate/minting-dapp.git
    ```
 2. Navigate to the project directory
    ```sh
-   cd minting-dapp-crosschain
+   cd minting-dapp
    ```
 3. Install NPM packages
    ```sh
@@ -79,11 +79,11 @@ NEXT_PUBLIC_ALCHEMY_API_KEY=<your API key> # https://www.alchemy.com/
 NEXT_PUBLIC_ENABLE_TESTNET=true # toggles to use testnet configuration or mainnet
 
 # smart contract configs (toggle these to switch between testnet and mainnet)
-NEXT_PUBLIC_RPC_SOURCE="RPC URL" # e.g. https://www.ankr.com/ or  https://www.alchemy.com/ (depends on chains and your preference)
+NEXT_PUBLIC_RPC_URL="RPC URL" # e.g. https://www.ankr.com/ or  https://www.alchemy.com/ (depends on chains and your preference)
 NEXT_PUBLIC_RPC_DESTINATION="RPC URL" # e.g. https://www.ankr.com/ or  https://www.alchemy.com/ (depends on chains and your preference)
 NEXT_PUBLIC_TOKEN_CONTRACT="Contract Address"
 NEXT_PUBLIC_NFT_CONTRACT="Contract Address"
-NEXT_PUBLIC_SOURCE_MINTER_CONTRACT="Contract Address"
+NEXT_PUBLIC_NFT_CONTRACT="Contract Address"
 NEXT_PUBLIC_DESTINATION_MINTER_CONTRACT="Contract Address"
 
 #### Run development server:

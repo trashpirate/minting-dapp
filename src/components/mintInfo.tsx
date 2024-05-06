@@ -1,29 +1,19 @@
 import Image from "next/image";
 import MintButton from "./mintButton";
-import { sourceMinterABI } from "@/assets/sourceMinterABI";
-import { base, bsc, bscTestnet, baseSepolia } from "wagmi/chains";
+import { mainnet, sepolia } from "wagmi/chains";
 import { config, isTestnet } from "@/lib/config";
 import { useEffect, useState } from "react";
 import { readContract } from "@wagmi/core";
 import { useReadContract } from "wagmi";
 import { nftABI } from "@/assets/nftABI";
 
-const SOURCE_MINTER_CONTRACT = process.env.NEXT_PUBLIC_SOURCE_MINTER_CONTRACT as `0x${string}`;
 const NFT_CONTRACT = process.env.NEXT_PUBLIC_NFT_CONTRACT as `0x${string}`;
-
-// define minting contract config
-const sourceMinterContract = {
-    address: SOURCE_MINTER_CONTRACT,
-    abi: sourceMinterABI,
-    chainId: isTestnet() ? bscTestnet.id : bsc.id,
-    config
-};
 
 // define nft contract config
 const nftContract = {
     address: NFT_CONTRACT,
     abi: nftABI,
-    chainId: isTestnet() ? baseSepolia.id : base.id,
+    chainId: isTestnet() ? sepolia.id : mainnet.id,
     config
 };
 
@@ -31,16 +21,31 @@ type Props = {};
 
 export default function MintInfo({ }: Props) {
 
-    // let [paused, setPaused] = useState<boolean>(true);
+    let [paused, setPaused] = useState<boolean>(true);
     let [soldOut, setSoldOut] = useState<boolean>(false);
 
     // check if paused
-    const { data: paused } = useReadContract({
-        ...sourceMinterContract,
-        functionName: "isPaused",
+    // const { data: paused } = useReadContract({
+    //     ...nftContract,
+    //     functionName: "isPaused",
+    // });
+    const { data: unpaused } = useReadContract({
+        ...nftContract,
+        functionName: "getBatchLimit",
     });
 
-    // check if paused
+    useEffect(() => {
+        if (unpaused !== undefined) {
+            if (unpaused)
+                setPaused(false);
+            else
+                setPaused(true);
+        }
+
+    }, [unpaused])
+
+
+
     useEffect(() => {
 
         async function isSoldOut(): Promise<boolean | undefined> {

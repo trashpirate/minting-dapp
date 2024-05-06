@@ -1,33 +1,32 @@
-import { sourceMinterABI } from '@/assets/sourceMinterABI';
 import { tokenABI } from '@/assets/tokenABI';
 import { config, isTestnet } from '@/lib/config';
 import { Dialog, Transition } from '@headlessui/react'
 import { MoonLoader } from 'react-spinners';
 import { Fragment, useEffect, useState } from 'react'
-import { formatEther, parseEther } from 'viem';
+import { formatEther } from 'viem';
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { getBalance, getConnectorClient, readContract, switchChain } from 'wagmi/actions';
-import { bsc, bscTestnet } from 'wagmi/chains';
+import { getBalance, readContract, switchChain } from 'wagmi/actions';
+import { mainnet, sepolia } from 'wagmi/chains';
 import Image from 'next/image';
 import { ConnectKitButton } from 'connectkit';
+import { nftABI } from '@/assets/nftABI';
 
-const SOURCE_MINTER_CONTRACT = process.env.NEXT_PUBLIC_SOURCE_MINTER_CONTRACT as `0x${string}`;
-const DESTINATION_MINTER_CONTRACT = process.env.NEXT_PUBLIC_DESTINATION_MINTER_CONTRACT as `0x${string}`;
+const NFT_CONTRACT = process.env.NEXT_PUBLIC_NFT_CONTRACT as `0x${string}`;
 const TOKEN_CONTRACT = process.env.NEXT_PUBLIC_TOKEN_CONTRACT as `0x${string}`;
 
 // define token contract config
 const tokenContract = {
     address: TOKEN_CONTRACT,
     abi: tokenABI,
-    chainId: isTestnet() ? bscTestnet.id : bsc.id,
+    chainId: isTestnet() ? sepolia.id : mainnet.id,
     config
 };
 
 // define token contract config
-const sourceMinterContract = {
-    address: SOURCE_MINTER_CONTRACT,
-    abi: sourceMinterABI,
-    chainId: isTestnet() ? bscTestnet.id : bsc.id,
+const nftContract = {
+    address: NFT_CONTRACT,
+    abi: nftABI,
+    chainId: isTestnet() ? sepolia.id : mainnet.id,
     config
 };
 
@@ -35,7 +34,7 @@ async function hasTokensApproved(account: `0x${string}` | undefined): Promise<[b
 
     // read token fee
     const tokenFee = await readContract(config, {
-        ...sourceMinterContract,
+        ...nftContract,
         functionName: "getTokenFee",
     });
 
@@ -52,7 +51,7 @@ async function hasTokensApproved(account: `0x${string}` | undefined): Promise<[b
     const allowance = await readContract(config, {
         ...tokenContract,
         functionName: "allowance",
-        args: [account as `0x${string}`, SOURCE_MINTER_CONTRACT]
+        args: [account as `0x${string}`, NFT_CONTRACT]
     });
 
     const approved = allowance >= tokenFee;
@@ -94,7 +93,7 @@ export default function MintButton({ paused }: Props) {
         callApprove({
             ...tokenContract,
             functionName: "approve",
-            args: [SOURCE_MINTER_CONTRACT, tokenFee],
+            args: [NFT_CONTRACT, tokenFee],
             account: address,
         });
     }
@@ -108,37 +107,24 @@ export default function MintButton({ paused }: Props) {
 
         // read nft ETH fee
         const ethFee = await readContract(config, {
-            ...sourceMinterContract,
+            ...nftContract,
             functionName: "getEthFee",
         });
 
-        const gasFee = await readContract(config, {
-            ...sourceMinterContract,
-            functionName: "getCCIPFee",
-            args: [DESTINATION_MINTER_CONTRACT as `0x${string}`, BigInt(1)]
-        });
-
-        // const gasFee = parseEther('0.002');
-        const totalFee = ethFee + gasFee;
-        console.log("CCIP gas:", gasFee);
-
-        if (balance.value < totalFee) {
+        if (balance.value < ethFee) {
             setErrorMessage(`You have insufficient balance. You need ${Number(formatEther(ethFee)).toLocaleString(undefined, {
                 minimumFractionDigits: 3,
                 maximumFractionDigits: 3,
-            })} BNB (minting fee) + ${Number(formatEther(gasFee)).toLocaleString(undefined, {
-                minimumFractionDigits: 3,
-                maximumFractionDigits: 3,
-            })} BNB (gas fee) to mint an NFT.`)
+            })} ETH (minting fee) to mint an NFT.`)
             setShowError(true);
             return;
         }
 
         callMint({
-            ...sourceMinterContract,
+            ...nftContract,
             functionName: "mint",
-            args: [DESTINATION_MINTER_CONTRACT, BigInt(quantity)],
-            value: totalFee,
+            args: [BigInt(quantity)],
+            value: ethFee,
             account: address,
         });
     }
@@ -146,14 +132,14 @@ export default function MintButton({ paused }: Props) {
     // on button click
     async function onSubmit() {
 
-        if (chainId != (isTestnet() ? bscTestnet.id : bsc.id)) {
-            setErrorMessage("The NFTs are minted from BNB to Base chain. Switch to BNB and try again.");
+        if (chainId != (isTestnet() ? sepolia.id : mainnet.id)) {
+            setErrorMessage("The NFTs are minted on Ethereum. Switch to Ethereum and try again.");
             setShowError(true);
             try {
                 if (isTestnet())
-                    await switchChain(config, { chainId: bscTestnet.id });
+                    await switchChain(config, { chainId: sepolia.id });
                 else
-                    await switchChain(config, { chainId: bsc.id });
+                    await switchChain(config, { chainId: mainnet.id });
             }
             catch {
                 console.log('Switching chains failed.')
@@ -307,7 +293,7 @@ export default function MintButton({ paused }: Props) {
                                         <div className="mt-2 text-xs sm:text-sm text-white">
                                             {isApproving && approvePending && <p>Approve 1 Million 0X52 tokens in your wallet to mint 1 NFT.</p>}
                                             {isApproving && isConfirmingApprove && <p>Approving 1 Million 0X52...</p>}
-                                            {isMinting && mintPending && <div><p>Confirm transaction in your wallet.</p><p>A 0.2 BNB minting fee and transaction fees will be applied.</p></div>}
+                                            {isMinting && mintPending && <div><p>Confirm transaction in your wallet.</p><p>A 0.2 ETH minting fee and transaction fees will be applied.</p></div>}
                                             {isMinting && isConfirmingMint && <p>Minting your NFT...</p>}
                                             {isMinting && isConfirmedMint && <div><p >Mint Successful!</p><p >Please be patient. It might take a few minutes until the NFT is minted and appears on Base chain.</p></div>}
                                             {showError && <p className='text-primary'>{errorMessage}</p>}

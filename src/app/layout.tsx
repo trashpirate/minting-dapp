@@ -12,20 +12,20 @@ export const metadata: Metadata = {
   applicationName: process.env.NEXT_PUBLIC_PROJECT_NAME,
   twitter: {
     card: "summary_large_image",
-    site: "0x52.buyholdearn.com",
+    site: "example.com",
     creator: "@laylascreations",
-    images: "https://0x52.buyholdearn.com/featured_image.jpg",
+    images: "https://example.com/featured_image.jpg",
   },
   openGraph: {
     type: "website",
-    url: "https://0x52.buyholdearn.com",
+    url: "https://example.com",
     title: process.env.NEXT_PUBLIC_PROJECT_NAME,
     description:
       process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION,
     siteName: process.env.NEXT_PUBLIC_PROJECT_NAME,
     images: [
       {
-        url: "https://0x52.buyholdearn.com/featured_image.jpg",
+        url: "https://example.com/featured_image.jpg",
       },
     ],
   },

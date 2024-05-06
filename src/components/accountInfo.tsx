@@ -6,7 +6,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { tokenABI } from "@/assets/tokenABI";
 import { formatEther } from "viem";
 import { nftABI } from "@/assets/nftABI";
-import { base, bsc, bscTestnet, baseSepolia } from "wagmi/chains";
+import { mainnet, sepolia } from "wagmi/chains";
 import { ConnectKitButton } from "connectkit";
 import { config, isTestnet } from "@/lib/config";
 
@@ -25,7 +25,7 @@ export default function AccountInfo() {
     const tokenContract = {
         address: TOKEN_CONTRACT,
         abi: tokenABI,
-        chainId: isTestnet() ? bscTestnet.id : bsc.id,
+        chainId: isTestnet() ? sepolia.id : mainnet.id,
         config
     };
 
@@ -33,7 +33,7 @@ export default function AccountInfo() {
     const nftContract = {
         address: NFT_CONTRACT,
         abi: nftABI,
-        chainId: isTestnet() ? baseSepolia.id : base.id,
+        chainId: isTestnet() ? sepolia.id : mainnet.id,
         config
     };
 

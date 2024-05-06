@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import { nftABI } from "@/assets/nftABI";
 import { config, isTestnet } from "@/lib/config";
-import { base } from "wagmi/chains";
+import { sepolia, mainnet } from "wagmi/chains";
 import CopyToClipboard from "./copyToClipboard";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,7 +20,7 @@ export default function CollectionInfo() {
     const nftContract = {
         address: NFT_CONTRACT,
         abi: nftABI,
-        chainId: base.id,
+        chainId: isTestnet() ? sepolia.id : mainnet.id,
         config
     };
 
@@ -100,7 +100,7 @@ export default function CollectionInfo() {
                     textSize='text-base'
                     iconSize='text-[10px]'
                 />
-                <Link className="opacity-80 hover:opacity-100 my-auto w-fit" href={`https://${isTestnet() ? "base-sepolia" : "base"}.blockscout.com/token/${NFT_CONTRACT}`} target="_blank">
+                <Link className="opacity-80 hover:opacity-100 my-auto w-fit" href={`https://${isTestnet() ? "sepolia." : ""}etherscan.io/token/${NFT_CONTRACT}`} target="_blank">
                     <Image
                         src="/basescan.svg"
                         width={122}

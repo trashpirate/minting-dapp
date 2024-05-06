@@ -3,11 +3,9 @@
 import AccountInfo from '@/components/accountInfo';
 import CollectionInfo from '@/components/collectionInfo';
 import Footer from '@/components/footer';
-import MintButton from '@/components/mintButton';
 import MintInfo from '@/components/mintInfo';
 import Navbar from '@/components/navbar';
 import Nfts from '@/components/nfts';
-import { ConnectKitButton } from 'connectkit';
 import Image from "next/image";
 
 export default function Home() {
