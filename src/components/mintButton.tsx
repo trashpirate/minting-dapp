@@ -1,4 +1,3 @@
-import { tokenABI } from '@/assets/tokenABI';
 import { config, isTestnet } from '@/lib/config';
 import { Dialog, Transition } from '@headlessui/react'
 import { MoonLoader } from 'react-spinners';
@@ -12,15 +11,6 @@ import { ConnectKitButton } from 'connectkit';
 import { nftABI } from '@/assets/nftABI';
 
 const NFT_CONTRACT = process.env.NEXT_PUBLIC_NFT_CONTRACT as `0x${string}`;
-const TOKEN_CONTRACT = process.env.NEXT_PUBLIC_TOKEN_CONTRACT as `0x${string}`;
-
-// define token contract config
-const tokenContract = {
-    address: TOKEN_CONTRACT,
-    abi: tokenABI,
-    chainId: isTestnet() ? sepolia.id : mainnet.id,
-    config
-};
 
 // define token contract config
 const nftContract = {
@@ -30,34 +20,6 @@ const nftContract = {
     config
 };
 
-async function hasTokensApproved(account: `0x${string}` | undefined): Promise<[boolean, boolean, bigint]> {
-
-    // read token fee
-    const tokenFee = await readContract(config, {
-        ...nftContract,
-        functionName: "getTokenFee",
-    });
-
-    // read allowance
-    const balance = await readContract(config, {
-        ...tokenContract,
-        functionName: "balanceOf",
-        args: [account as `0x${string}`]
-    });
-
-    const sufficientBalance = balance >= tokenFee;
-
-    // read allowance
-    const allowance = await readContract(config, {
-        ...tokenContract,
-        functionName: "allowance",
-        args: [account as `0x${string}`, NFT_CONTRACT]
-    });
-
-    const approved = allowance >= tokenFee;
-
-    return [sufficientBalance, approved, tokenFee];
-}
 
 type Props = {
     paused: boolean;
@@ -75,28 +37,13 @@ export default function MintButton({ paused }: Props) {
     let [errorMessage, setErrorMessage] = useState<string>("An Error occured.");
 
     // connected account
-    const { address, isConnected, isConnecting, chainId } = useAccount();
+    const { address, isConnected, chainId } = useAccount();
 
     // set up write contract hooks
     const { data: mintHash,
         isPending: mintPending,
         isError: mintError,
         writeContract: callMint } = useWriteContract();
-
-    const { data: approveHash,
-        isPending: approvePending,
-        isError: approveError,
-        writeContract: callApprove } = useWriteContract();
-
-    // approve
-    async function approve(tokenFee: bigint) {
-        callApprove({
-            ...tokenContract,
-            functionName: "approve",
-            args: [NFT_CONTRACT, tokenFee],
-            account: address,
-        });
-    }
 
     // mint
     async function mint() {
@@ -108,7 +55,7 @@ export default function MintButton({ paused }: Props) {
         // read nft ETH fee
         const ethFee = await readContract(config, {
             ...nftContract,
-            functionName: "getEthFee",
+            functionName: "getFee",
         });
 
         if (balance.value < ethFee) {
@@ -148,26 +95,9 @@ export default function MintButton({ paused }: Props) {
             return;
         }
 
-        const [sufficientBalance, approved, tokenFee] = await hasTokensApproved(address);
 
-        if (!sufficientBalance) {
-            setErrorMessage("You have insufficient token balance. You need 1M 0X52 tokens to mint an NFT.");
-            setShowError(true);
-            return;
-        };
-
-        /** adjust this if no tokens used for minting */
-        // setIsMinting(true);
-        // mint();
-
-        if (approved) {
-            setIsMinting(true);
-            mint();
-        }
-        else {
-            setIsApproving(true);
-            approve(tokenFee);
-        }
+        setIsMinting(true);
+        mint();
     }
 
     // transaction hooks
@@ -176,21 +106,6 @@ export default function MintButton({ paused }: Props) {
             confirmations: 3,
             hash: mintHash
         })
-
-    const { isLoading: isConfirmingApprove, isSuccess: isConfirmedApprove } =
-        useWaitForTransactionReceipt({
-            confirmations: 3,
-            hash: approveHash,
-        })
-
-    // checking if minting or approving in process
-    useEffect(() => {
-        if (isConfirmedApprove) {
-            setIsApproving(false);
-            setIsMinting(true);
-            mint();
-        }
-    }, [isConfirmedApprove]);
 
     // delay after minting is finished
     useEffect(() => {
@@ -201,20 +116,14 @@ export default function MintButton({ paused }: Props) {
 
     // open/close popup
     useEffect(() => {
-        if (isApproving || isMinting || showError || mintCompleted) {
+        if (isMinting || showError || mintCompleted) {
             setIsOpen(true);
         }
         else {
             setIsOpen(false);
         }
-    }, [isApproving, isMinting, showError, mintCompleted])
+    }, [isMinting, showError, mintCompleted])
 
-    // approve error
-    useEffect(() => {
-        if (approveError) {
-            setIsApproving(false);
-        }
-    }, [approveError])
 
     // minting error
     useEffect(() => {
@@ -226,7 +135,6 @@ export default function MintButton({ paused }: Props) {
     // close pop up
     function closeModal() {
         setShowError(false);
-        setIsApproving(false);
         setIsMinting(false);
         setMintCompleted(false);
     }
@@ -247,7 +155,7 @@ export default function MintButton({ paused }: Props) {
                 {!isConnected && <ConnectKitButton />}
                 {isConnected && <button
                     type="button"
-                    disabled={mintPending || approvePending || paused}
+                    disabled={mintPending || paused}
                     onClick={onSubmit}
                     className={"rounded-md bg-secondary px-4 py-2 text-sm font-medium " + getButtonStyle()}
                 >
@@ -287,12 +195,9 @@ export default function MintButton({ paused }: Props) {
                                             className="text-lg font-medium leading-6 text-primary uppercase"
                                         >
                                             {isMinting && !showError && <div>Minting NFT</div>}
-                                            {isApproving && !showError && <div>Approving Tokens</div>}
                                             {showError && <div>Error</div>}
                                         </Dialog.Title>
                                         <div className="mt-2 text-xs sm:text-sm text-white">
-                                            {isApproving && approvePending && <p>Approve 1 Million 0X52 tokens in your wallet to mint 1 NFT.</p>}
-                                            {isApproving && isConfirmingApprove && <p>Approving 1 Million 0X52...</p>}
                                             {isMinting && mintPending && <div><p>Confirm transaction in your wallet.</p><p>A 0.2 ETH minting fee and transaction fees will be applied.</p></div>}
                                             {isMinting && isConfirmingMint && <p>Minting your NFT...</p>}
                                             {isMinting && isConfirmedMint && <div><p >Mint Successful!</p><p >Please be patient. It might take a few minutes until the NFT is minted and appears on Base chain.</p></div>}
@@ -300,7 +205,7 @@ export default function MintButton({ paused }: Props) {
 
                                         </div>
                                         <div className='my-4 flex justify-center h-16'>
-                                            {(isConfirmingApprove || isConfirmingMint) ? <MoonLoader className='my-auto' color="#FFFFFF" speedMultiplier={0.7} /> :
+                                            {(isConfirmingMint) ? <MoonLoader className='my-auto' color="#FFFFFF" speedMultiplier={0.7} /> :
                                                 <Image
                                                     className='h-full w-auto my-auto'
                                                     src='/logo_transparent.png'

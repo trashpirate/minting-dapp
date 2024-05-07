@@ -21,30 +21,13 @@ type Props = {};
 
 export default function MintInfo({ }: Props) {
 
-    let [paused, setPaused] = useState<boolean>(true);
     let [soldOut, setSoldOut] = useState<boolean>(false);
 
     // check if paused
-    // const { data: paused } = useReadContract({
-    //     ...nftContract,
-    //     functionName: "isPaused",
-    // });
-    const { data: unpaused } = useReadContract({
+    const { data: paused } = useReadContract({
         ...nftContract,
-        functionName: "getBatchLimit",
+        functionName: "isPaused",
     });
-
-    useEffect(() => {
-        if (unpaused !== undefined) {
-            if (unpaused)
-                setPaused(false);
-            else
-                setPaused(true);
-        }
-
-    }, [unpaused])
-
-
 
     useEffect(() => {
 
@@ -57,6 +40,7 @@ export default function MintInfo({ }: Props) {
             const maxSupply = await readContract(config, {
                 ...nftContract,
                 functionName: "getMaxSupply",
+                args: [BigInt(1)],
             });
 
             return (maxSupply == totalSupply);

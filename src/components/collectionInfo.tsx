@@ -102,7 +102,7 @@ export default function CollectionInfo() {
                 />
                 <Link className="opacity-80 hover:opacity-100 my-auto w-fit" href={`https://${isTestnet() ? "sepolia." : ""}etherscan.io/token/${NFT_CONTRACT}`} target="_blank">
                     <Image
-                        src="/basescan.svg"
+                        src="/etherscan.png"
                         width={122}
                         height={122}
                         style={{ width: "15px", height: "auto" }}

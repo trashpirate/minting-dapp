@@ -80,11 +80,8 @@ NEXT_PUBLIC_ENABLE_TESTNET=true # toggles to use testnet configuration or mainne
 
 # smart contract configs (toggle these to switch between testnet and mainnet)
 NEXT_PUBLIC_RPC_URL="RPC URL" # e.g. https://www.ankr.com/ or  https://www.alchemy.com/ (depends on chains and your preference)
-NEXT_PUBLIC_RPC_DESTINATION="RPC URL" # e.g. https://www.ankr.com/ or  https://www.alchemy.com/ (depends on chains and your preference)
 NEXT_PUBLIC_TOKEN_CONTRACT="Contract Address"
 NEXT_PUBLIC_NFT_CONTRACT="Contract Address"
-NEXT_PUBLIC_NFT_CONTRACT="Contract Address"
-NEXT_PUBLIC_DESTINATION_MINTER_CONTRACT="Contract Address"
 
 #### Run development server:
 
